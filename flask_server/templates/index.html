@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>树莓派数据收集系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 16px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-label:hover {
+            background: #e9ecef;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .qr-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .qr-code {
+            margin: 20px 0;
+        }
+        
+        .qr-code img {
+            max-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🥧</div>
+        <h1>数据收集系统</h1>
+        <p class="subtitle">扫码提交数据，离线也能用</p>
+        
+        <form id="dataForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="form_type">数据类型</label>
+                <select id="form_type" name="form_type" required>
+                    <option value="">请选择数据类型</option>
+                    <option value="survey">问卷调查</option>
+                    <option value="feedback">意见反馈</option>
+                    <option value="report">报告提交</option>
+                    <option value="registration">信息登记</option>
+                    <option value="other">其他</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">标题</label>
+                <input type="text" id="title" name="title" placeholder="请输入标题" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="content">内容</label>
+                <textarea id="content" name="content" rows="4" placeholder="请输入详细内容" required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="contact">联系方式</label>
+                <input type="text" id="contact" name="contact" placeholder="手机号或邮箱（可选）">
+            </div>
+            
+            <div class="form-group">
+                <label>附件上传</label>
+                <div class="file-input">
+                    <input type="file" id="files" name="files" multiple accept="image/*,.pdf,.doc,.docx,.txt">
+                    <label for="files" class="file-input-label">
+                        📎 点击选择文件（支持图片、PDF、文档）
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">提交数据</button>
+        </form>
+        
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+        
+        <div class="qr-section">
+            <h3>扫码访问</h3>
+            <div class="qr-code" id="qrCode">
+                <p>正在生成二维码...</p>
+            </div>
+            <p style="font-size: 14px; color: #7f8c8d;">
+                用手机扫描二维码可直接访问此页面
+            </p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <!-- 统计信息将通过JavaScript加载 -->
+        </div>
+    </div>
+
+    <script>
+        // 表单提交处理
+        document.getElementById('dataForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = document.querySelector('.btn');
+            const originalText = submitBtn.textContent;
+            
+            // 显示提交状态
+            submitBtn.textContent = '提交中...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('success', `数据提交成功！提交ID: ${result.submission_id}`);
+                    this.reset();
+                    updateStats();
+                } else {
+                    showMessage('error', result.message);
+                }
+            } catch (error) {
+                showMessage('error', '网络错误，请检查连接');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // 显示消息
+        function showMessage(type, message) {
+            const successEl = document.getElementById('successMessage');
+            const errorEl = document.getElementById('errorMessage');
+            
+            if (type === 'success') {
+                successEl.textContent = message;
+                successEl.style.display = 'block';
+                errorEl.style.display = 'none';
+                setTimeout(() => successEl.style.display = 'none', 5000);
+            } else {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+                successEl.style.display = 'none';
+                setTimeout(() => errorEl.style.display = 'none', 5000);
+            }
+        }
+        
+        // 文件选择提示
+        document.getElementById('files').addEventListener('change', function() {
+            const label = document.querySelector('.file-input-label');
+            const fileCount = this.files.length;
+            
+            if (fileCount > 0) {
+                label.textContent = `已选择 ${fileCount} 个文件`;
+            } else {
+                label.textContent = '📎 点击选择文件（支持图片、PDF、文档）';
+            }
+        });
+        
+        // 加载二维码
+        async function loadQRCode() {
+            try {
+                const response = await fetch('/api/qrcode');
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('qrCode').innerHTML = 
+                        `<img src="${result.qrcode}" alt="访问二维码">
+                         <p style="font-size: 12px; margin-top: 10px;">${result.url}</p>`;
+                } else {
+                    document.getElementById('qrCode').innerHTML = '<p>二维码生成失败</p>';
+                }
+            } catch (error) {
+                document.getElementById('qrCode').innerHTML = '<p>无法生成二维码</p>';
+            }
+        }
+        
+        // 加载统计信息
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const stats = result.stats;
+                    document.getElementById('stats').innerHTML = `
+                        <div class="stat-item">
+                            <div class="stat-number">${stats.total_submissions}</div>
+                            <div class="stat-label">总提交数</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${stats.today_submissions}</div>
+                            <div class="stat-label">今日提交</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">${stats.unsynced_count}</div>
+                            <div class="stat-label">待同步</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.log('无法加载统计信息');
+            }
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQRCode();
+            updateStats();
+            
+            // 每30秒更新一次统计信息
+            setInterval(updateStats, 30000);
+        });
+    </script>
+</body>
+</html>
